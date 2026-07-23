@@ -1,5 +1,4 @@
 
-```markdown
 # CMSIT Query Assistant
 
 A Grafana app plugin for creating CMS Inner Tracker monitoring plots from
