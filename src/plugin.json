@@ -1,0 +1,39 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "app",
+  "name": "CMSIT Query Assistant",
+  "id": "atharphy-cmsitqueryassistant-app",
+  "info": {
+    "keywords": ["cmsit", "prometheus", "assistant", "monitoring"],
+    "description": "Natural-language Prometheus queries for CMSIT monitoring data.",
+    "author": {
+      "name": "Atharphy"
+    },
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "includes": [
+    {
+      "type": "page",
+      "name": "CMSIT Query Assistant",
+      "path": "/a/%PLUGIN_ID%/home",
+      "addToNav": true,
+      "defaultNav": true
+    }
+  ],
+  "dependencies": {
+    "grafanaDependency": ">=12.3.0",
+    "plugins": [
+      {
+        "id": "grafana-assistant-app",
+        "type": "app",
+        "name": "Grafana Assistant"
+      }
+    ]
+  }
+}

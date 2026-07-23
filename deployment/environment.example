@@ -1,0 +1,8 @@
+# Grafana installation used for the CMSIT Query Assistant.
+GRAFANA_HOME=/home/bootcamp/grafana
+
+# HTTP port used by the standalone Grafana instance.
+GRAFANA_PORT=3300
+
+# Prometheus server containing cmsit_monitor_* metrics.
+CMSIT_PROMETHEUS_URL=http://localhost:9090

@@ -1,0 +1,15 @@
+# Grafana Prometheus datasource provisioning.
+# Set CMSIT_PROMETHEUS_URL before starting Grafana.
+
+apiVersion: 1
+
+datasources:
+  - name: CMSIT Prometheus
+    uid: cmsit-prometheus
+    type: prometheus
+    access: proxy
+    url: ${CMSIT_PROMETHEUS_URL}
+    isDefault: false
+    editable: true
+    jsonData:
+      timeInterval: 1s

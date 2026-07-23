@@ -1,0 +1,9 @@
+# CMSIT Query Assistant plugin configuration.
+#
+# Copy this section into:
+#   GRAFANA_HOME/conf/custom.ini
+#
+# This permits only the specified unsigned development plugin.
+
+[plugins]
+allow_loading_unsigned_plugins = atharphy-cmsitqueryassistant-app
