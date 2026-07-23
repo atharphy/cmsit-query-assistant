@@ -1,4 +1,3 @@
-```markdown
 # CMSIT Query Assistant Troubleshooting
 
 ## `node` or `npm` Is Not Found
