@@ -1,4 +1,3 @@
-```markdown
 # CMSIT Query Assistant Installation
 
 ## Overview
