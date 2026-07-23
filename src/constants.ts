@@ -12,10 +12,16 @@ export interface DataSourceRef {
   type: string;
 }
 
+const CMSIT_PROMETHEUS_UID = 'cmsit-prometheus';
+
 export function getPrometheusDataSource(): DataSourceRef | undefined {
-  const datasource = Object.values(config.datasources).find(
-    (item) => item.type === 'prometheus'
-  );
+  const datasources = Object.values(config.datasources);
+  const datasource =
+    datasources.find(
+      (item) =>
+        item.type === 'prometheus' &&
+        item.uid === CMSIT_PROMETHEUS_UID
+    ) ?? datasources.find((item) => item.type === 'prometheus');
 
   if (!datasource) {
     return undefined;

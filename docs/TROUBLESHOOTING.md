@@ -281,12 +281,3 @@ npm run build
 ```
 
 all return exit status zero.
-```
-
-Verify both files:
-
-```bash
-ls -l docs
-sed -n '1,40p' docs/INSTALL.md
-sed -n '1,40p' docs/TROUBLESHOOTING.md
-```

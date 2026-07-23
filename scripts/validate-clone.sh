@@ -30,9 +30,11 @@ echo "Node:       $(node --version)"
 echo "npm:        $(npm --version)"
 echo
 
-NODE_MAJOR="$(node -p 'Number(process.versions.node.split(".")[0])')"
-if (( NODE_MAJOR < 22 )); then
-    fail "Node.js 22 or newer is required"
+EXPECTED_NODE="$(tr -d '[:space:]' < .nvmrc)"
+ACTUAL_NODE="$(node --version | sed 's/^v//')"
+
+if [[ "$ACTUAL_NODE" != "$EXPECTED_NODE" ]]; then
+    fail "Node.js ${EXPECTED_NODE} is required; found ${ACTUAL_NODE}"
 fi
 pass "Node.js version is supported"
 

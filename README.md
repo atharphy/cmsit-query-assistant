@@ -6,7 +6,7 @@ natural-language requests.
 
 The application uses Grafana Assistant to generate PromQL expressions and
 displays the results as Grafana time-series panels. Multiple panels can be
-created, edited, and removed independently.
+configured before creation and removed independently.
 
 ## Features
 
@@ -306,14 +306,3 @@ repository.
 ## License
 
 See `LICENSE`.
-```
-
-After saving it, verify that none of the old generated demo wording remains:
-
-```bash
-grep -niE \
-  'gdev-testdata|Hello World|With Tabs|With Drilldown|secret-key' \
-  README.md || true
-```
-
-No output is expected. The next files to create are `docs/INSTALL.md` and `docs/TROUBLESHOOTING.md`.

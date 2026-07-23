@@ -122,7 +122,10 @@ npm:     10.9.8
 npx:     10.9.8
 ```
 
-## Create the Plugin Scaffold
+## Historical Scaffold Creation
+
+This section records how the initial source tree was created. It is not
+required when installing from a Git clone.
 
 ```bash
 mkdir -p /home/bootcamp/grafana-plugin-src
@@ -315,4 +318,3 @@ cp -a dist/. \
 
 Restart Grafana when `plugin.json` changes. For frontend-only changes, a browser
 hard refresh may also be required.
-```

@@ -54,11 +54,13 @@ fi
 
 PLUGIN_ROOT="${GRAFANA_HOME}/data/plugins"
 TARGET="${PLUGIN_ROOT}/${PLUGIN_ID}"
+BACKUP_ROOT="${GRAFANA_HOME}/data/plugin-backups"
 
 mkdir -p "${PLUGIN_ROOT}"
 
 if [[ -d "${TARGET}" ]]; then
-  BACKUP="${TARGET}.backup.$(date +%Y%m%d-%H%M%S)"
+  mkdir -p "${BACKUP_ROOT}"
+  BACKUP="${BACKUP_ROOT}/${PLUGIN_ID}.$(date +%Y%m%d-%H%M%S)"
   mv "${TARGET}" "${BACKUP}"
   echo "Previous plugin installation moved to:"
   echo "  ${BACKUP}"
