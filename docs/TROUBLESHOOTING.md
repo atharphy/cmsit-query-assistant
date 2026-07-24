@@ -194,6 +194,58 @@ Cloud Assistant backend.
 
 The CMSIT app disables generation while Assistant is unavailable.
 
+## Business Charts or Detector Maps Are Unavailable
+
+Detector-map panels require the Business Charts plugin:
+
+```bash
+test -d \
+  /home/bootcamp/grafana/data/plugins/volkovlabs-echarts-panel \
+  && echo "Business Charts present"
+```
+
+Restart Grafana after installing or updating the panel plugin. The CMSIT app
+declares `volkovlabs-echarts-panel` as a runtime dependency in `plugin.json`.
+
+## Plugin Fails with `ChunkLoadError`
+
+Example:
+
+```text
+ChunkLoadError: Loading chunk 144 failed
+```
+
+This means Grafana's loaded entry point references a JavaScript chunk that is
+missing or stale. Deploy the complete `dist/` directory:
+
+```bash
+./scripts/install.sh /home/bootcamp/grafana
+```
+
+Then restart Grafana and use **Empty Cache and Hard Reload** in browser
+Developer Tools. Confirm that the requested chunk exists in:
+
+```text
+/home/bootcamp/grafana/data/plugins/atharphy-cmsitqueryassistant-app/
+```
+
+Never update only `module.js`; its chunk names belong to one exact build.
+
+## macOS `._*` Files Appear in the Plugin
+
+Archives made on macOS may contain AppleDouble metadata files. They can confuse
+plugin discovery and are not application source.
+
+Create transfer archives with:
+
+```bash
+COPYFILE_DISABLE=1 tar --no-xattrs -czf cmsit-query-assistant.tar.gz \
+  cmsit-query-assistant
+```
+
+The installation script removes any remaining `._*` files from the deployed
+plugin.
+
 ## Prometheus Data Source Is Not Found
 
 The application detects the first data source whose type is:
@@ -231,6 +283,29 @@ Also verify:
 - The Grafana time picker includes the available samples.
 - The requested register exists.
 - Detector labels match the query filters.
+
+## Detector Map Is Drawn but Has No Colored Modules
+
+First run the generated PromQL in Grafana Explore. If it returns data, verify
+that each series retains the labels needed to identify its detector module.
+Aggregation that removes `board`, `optical_group`, `hybrid`, or `chip` may
+prevent mapping.
+
+The map geometry is embedded in:
+
+```text
+src/pages/Home/detectorMap/detectorMapTemplate.json
+```
+
+Only modules represented in that mapping can receive values. Regenerate the
+asset after the parts dashboard mapping changes:
+
+```bash
+npm run sync:detector-map -- \
+  /path/to/cmsit_internal_ntc_rel_parts_dashboard.json
+```
+
+Rebuild and redeploy afterward.
 
 ## Arithmetic Between Registers Returns No Data
 

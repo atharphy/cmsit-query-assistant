@@ -1,106 +1,62 @@
 # CMSIT Query Assistant Installation
 
-## Overview
-
-CMSIT Query Assistant is a Grafana Scenes app plugin that converts
-natural-language monitoring requests into PromQL and displays results from the
-CMSIT Prometheus data source.
-
-The plugin uses:
-
-- Grafana 13.1.0
-- Grafana Scenes
-- Grafana Assistant
-- Prometheus
-- Node.js 22
-- npm
-
-It does not require changes to Ph2_ACF, RealtimeMonitor, PrometheusExporter, or
-Prometheus configuration.
-
-## Installation Paths
-
-The installation documented here uses:
+## Tested Stack
 
 ```text
-Grafana home:
-  /home/bootcamp/grafana
-
-Plugin source:
-  /home/bootcamp/grafana-plugin-src/atharphy-cmsitqueryassistant-app
-
-Installed plugin:
-  /home/bootcamp/grafana/data/plugins/atharphy-cmsitqueryassistant-app
-
-Plugin ID:
-  atharphy-cmsitqueryassistant-app
-
-Grafana URL:
-  http://localhost:3300
+Grafana:             13.1.0
+Node.js:             22.23.1
+npm:                 10.9.8
+Grafana Assistant:   installed and enabled
+Business Charts:     7.2.5
+Plugin ID:           atharphy-cmsitqueryassistant-app
+Plugin version:      1.1.0
 ```
 
-## Prerequisites
+The app is frontend-only. It does not require a Go backend or changes to
+Ph2_ACF.
 
-Verify Grafana:
+## 1. Verify Grafana Dependencies
+
+For the standalone installation used during development:
 
 ```bash
-/home/bootcamp/grafana/bin/grafana server -v
+GRAFANA_HOME=/home/bootcamp/grafana
+
+"${GRAFANA_HOME}/bin/grafana" server -v
+
+test -d "${GRAFANA_HOME}/data/plugins/grafana-assistant-app" \
+  && echo "Grafana Assistant present"
+
+test -d "${GRAFANA_HOME}/data/plugins/volkovlabs-echarts-panel" \
+  && echo "Business Charts present"
 ```
 
-The tested version is:
+Grafana Assistant must also be enabled and connected to its configured Grafana
+Cloud backend. A working Prometheus data source must be available in Grafana.
 
-```text
-Grafana 13.1.0
-```
+## 2. Install Node.js Without Root Access
 
-Verify that Grafana Assistant is installed:
+Skip this section when `node --version` already returns `v22.23.1`.
 
 ```bash
-ls /home/bootcamp/grafana/data/plugins/grafana-assistant-app
-```
-
-Grafana Assistant must also be enabled and connected to a Grafana Cloud
-Assistant backend.
-
-A Prometheus data source must be configured in Grafana.
-
-## Install Node.js Locally
-
-Node.js was installed under the `bootcamp` account without root access.
-
-```bash
-cd /home/bootcamp
-mkdir -p /home/bootcamp/.local
-cd /home/bootcamp/.local
+mkdir -p "$HOME/.local"
+cd "$HOME/.local"
 
 curl -fLO \
   https://nodejs.org/dist/v22.23.1/node-v22.23.1-linux-x64.tar.xz
-
 curl -fLO \
   https://nodejs.org/dist/v22.23.1/SHASUMS256.txt
-```
 
-Verify the archive:
-
-```bash
 grep ' node-v22.23.1-linux-x64.tar.xz$' SHASUMS256.txt \
   | sha256sum -c -
-```
 
-Extract it:
-
-```bash
 tar -xJf node-v22.23.1-linux-x64.tar.xz
-```
 
-Enable it:
-
-```bash
 export PATH="$HOME/.local/node-v22.23.1-linux-x64/bin:$PATH"
 hash -r
 ```
 
-Make the configuration persistent by adding this line to `~/.bashrc`:
+Add this line to `~/.bashrc`:
 
 ```bash
 export PATH="$HOME/.local/node-v22.23.1-linux-x64/bin:$PATH"
@@ -111,147 +67,117 @@ Verify:
 ```bash
 node --version
 npm --version
-npx --version
 ```
 
-Tested versions:
+Do not accept the operating system's interactive `nodejs` installation prompt
+when you do not have administrator privileges.
 
-```text
-Node.js: v22.23.1
-npm:     10.9.8
-npx:     10.9.8
-```
-
-## Historical Scaffold Creation
-
-This section records how the initial source tree was created. It is not
-required when installing from a Git clone.
+## 3. Clone and Build
 
 ```bash
 mkdir -p /home/bootcamp/grafana-plugin-src
 cd /home/bootcamp/grafana-plugin-src
 
-npx @grafana/create-plugin@latest \
-  --plugin-type=scenesapp \
-  --plugin-name=cmsitqueryassistant \
-  --org-name=atharphy \
-  --no-backend
+git clone \
+  https://github.com/atharphy/cmsit-query-assistant.git \
+  atharphy-cmsitqueryassistant-app
+
+cd atharphy-cmsitqueryassistant-app
+
+./scripts/build.sh
 ```
 
-This creates:
+The build script performs:
 
-```text
-atharphy-cmsitqueryassistant-app
-```
+1. `npm ci`
+2. TypeScript checking
+3. ESLint checking
+4. Unit tests
+5. Production build
 
-The plugin is frontend-only. No Go backend or Mage installation is required.
+All steps must complete successfully. A webpack asset-size warning is
+non-fatal.
 
-## Install Dependencies
+For a release or a new machine, also run:
 
 ```bash
-cd /home/bootcamp/grafana-plugin-src/atharphy-cmsitqueryassistant-app
-
-npm install
-npm install @grafana/assistant
+./scripts/validate-clone.sh
 ```
 
-The tested Assistant SDK version is:
+This verifies that a clean archive of committed files builds without relying
+on local untracked files.
+
+## 4. Configure Prometheus
+
+The app discovers a Grafana Prometheus data source. The supplied provisioning
+example uses:
 
 ```text
-@grafana/assistant@0.1.30
+Name: CMSIT Prometheus
+UID:  cmsit-prometheus
 ```
 
-Verify it:
+Set the server URL:
 
 ```bash
-npm list @grafana/assistant
+export CMSIT_PROMETHEUS_URL=http://localhost:9090
 ```
 
-Do not run:
+Install `deployment/cmsit-prometheus.yaml.example` in the provisioning
+directory used by the target Grafana instance, or configure the data source
+through the Grafana UI.
 
-```bash
-npm audit fix --force
+Verify these queries in Grafana Explore:
+
+```promql
+cmsit_monitor_value
 ```
 
-That command may introduce breaking dependency changes.
-
-## Build Verification
-
-Run all verification commands from the plugin root:
-
-```bash
-npm run typecheck
-npm run lint
-npm run build
+```promql
+cmsit_monitor_value{register="VINA"}
 ```
 
-All commands must return exit status zero.
+## 5. Allow the Unsigned Plugin
 
-The production files are generated under:
-
-```text
-dist/
-```
-
-Important generated files include:
-
-```text
-dist/module.js
-dist/plugin.json
-```
-
-## Configure Grafana for the Development Plugin
-
-Create or update:
-
-```text
-/home/bootcamp/grafana/conf/custom.ini
-```
-
-Add:
+Add this to `/home/bootcamp/grafana/conf/custom.ini`:
 
 ```ini
 [plugins]
 allow_loading_unsigned_plugins = atharphy-cmsitqueryassistant-app
 ```
 
-This permits only the CMSIT development plugin to run unsigned.
+The example is also available at `deployment/custom.ini.example`.
 
-## Deploy the Plugin
+## 6. Install the Build
 
 ```bash
 cd /home/bootcamp/grafana-plugin-src/atharphy-cmsitqueryassistant-app
 
-mkdir -p \
-  /home/bootcamp/grafana/data/plugins/atharphy-cmsitqueryassistant-app
-
-cp -a dist/. \
-  /home/bootcamp/grafana/data/plugins/atharphy-cmsitqueryassistant-app/
+./scripts/install.sh /home/bootcamp/grafana
 ```
 
-Verify the deployment:
+The installer:
 
-```bash
-sha256sum dist/module.js
+- Validates the built plugin ID
+- Backs up an existing installation
+- Copies the complete `dist/` directory
+- Removes macOS `._*` AppleDouble files
+- Verifies the installed `module.js` checksum
 
-sha256sum \
-  /home/bootcamp/grafana/data/plugins/atharphy-cmsitqueryassistant-app/module.js
-```
+Deploy the complete build, not only `module.js`. Webpack chunks change between
+builds and an incomplete copy causes `ChunkLoadError`.
 
-The two checksums must match.
+## 7. Restart Grafana
 
-## Start Grafana
-
-Only one `bootcamp` Grafana process may use the data directory.
-
-Check for an existing process:
+Check that no second standalone Grafana process is using the same data
+directory:
 
 ```bash
 pgrep -u bootcamp -af \
   'grafana server.*homepath=/home/bootcamp/grafana'
 ```
 
-Start Grafana:
+Start the intended instance:
 
 ```bash
 cd /home/bootcamp/grafana
@@ -261,60 +187,66 @@ cd /home/bootcamp/grafana
   cfg:server.http_port=3300
 ```
 
-Verify its health from another terminal:
+Verify:
 
 ```bash
 curl http://localhost:3300/api/health
+
+curl -s \
+  http://localhost:3300/public/plugins/atharphy-cmsitqueryassistant-app/plugin.json
 ```
 
-Expected result:
+The served plugin metadata must report version `1.1.0`.
 
-```json
-{
-  "database": "ok",
-  "version": "13.1.0"
-}
-```
+## 8. Open and Test
 
-## Enable and Open the App
-
-In Grafana:
-
-1. Open **Administration > Plugins and data > Plugins**.
-2. Find **CMSIT Query Assistant**.
-3. Enable the app.
-
-Open:
+Enable **CMSIT Query Assistant** under Grafana's plugin administration page,
+then open:
 
 ```text
 http://localhost:3300/a/atharphy-cmsitqueryassistant-app/home
 ```
 
-## Updating the Plugin
+Test a normal panel:
 
-After changing source files:
+```text
+Plot the hourly average of VINA for each chip over the last seven days.
+```
+
+Test a detector map:
+
+```text
+Show a complete TBPX Layer 3 detector map of modules whose INTERNAL_NTC_REL
+remained above 20 C during the last two days.
+```
+
+Review the generated PromQL, unit, visualization, and detector-map selections
+before adding the panel.
+
+## Updating
 
 ```bash
 cd /home/bootcamp/grafana-plugin-src/atharphy-cmsitqueryassistant-app
 
-npm run typecheck
-npm run lint
-npm run build
+git pull --ff-only
+./scripts/build.sh
+./scripts/install.sh /home/bootcamp/grafana
 ```
 
-For a release-style update, increment the version:
+Restart Grafana and perform an empty-cache hard reload. See
+`docs/TROUBLESHOOTING.md` if an old chunk remains cached.
+
+## Updating Detector Geometry
+
+The detector map is already embedded in the repository. Regeneration is needed
+only after the parts-dashboard map changes:
 
 ```bash
-npm version patch --no-git-tag-version
-npm run build
+npm run sync:detector-map -- \
+  /path/to/cmsit_internal_ntc_rel_parts_dashboard.json
+
+./scripts/build.sh
 ```
 
-Deploy again:
-
-```bash
-cp -a dist/. \
-  /home/bootcamp/grafana/data/plugins/atharphy-cmsitqueryassistant-app/
-```
-
-Restart Grafana when `plugin.json` changes. For frontend-only changes, a browser
-hard refresh may also be required.
+Commit the regenerated
+`src/pages/Home/detectorMap/detectorMapTemplate.json`.

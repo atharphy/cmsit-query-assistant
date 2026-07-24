@@ -33,6 +33,11 @@
         "id": "grafana-assistant-app",
         "type": "app",
         "name": "Grafana Assistant"
+      },
+      {
+        "id": "volkovlabs-echarts-panel",
+        "type": "panel",
+        "name": "Business Charts"
       }
     ]
   }

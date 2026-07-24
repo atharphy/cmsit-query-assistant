@@ -48,6 +48,16 @@ REQUIRED_FILES=(
     src/pages/Home/homePage.ts
     src/pages/Home/homeScene.ts
     src/pages/Home/CustomSceneObject.tsx
+    src/pages/Home/panelFactory.ts
+    src/pages/Home/panelSpecification.ts
+    src/pages/Home/panelSpecification.test.ts
+    src/pages/Home/detectorMap/detectorMapCode.ts
+    src/pages/Home/detectorMap/detectorMapPanel.ts
+    src/pages/Home/detectorMap/detectorMapPanel.test.ts
+    src/pages/Home/detectorMap/detectorMapTemplate.json
+    scripts/build.sh
+    scripts/install.sh
+    scripts/sync-detector-map-assets.mjs
     docs/INSTALL.md
     docs/TROUBLESHOOTING.md
 )
@@ -75,6 +85,13 @@ if git ls-files | grep -Eq '(^|/)(node_modules|dist)/'; then
     fail "node_modules or dist must not be committed"
 fi
 pass "node_modules and dist are not tracked"
+
+if git ls-files | grep -Eq '(^|/)\._'; then
+    echo "Tracked AppleDouble files:"
+    git ls-files | grep -E '(^|/)\._'
+    fail "macOS AppleDouble files must not be committed"
+fi
+pass "No AppleDouble files are tracked"
 
 if git grep -nE '^(<<<<<<<|>>>>>>>)' -- . ':!package-lock.json'; then
     fail "Unresolved merge-conflict markers were found"
@@ -118,6 +135,35 @@ if (!assistantDependency) {
   throw new Error(
     'grafana-assistant-app is missing from src/plugin.json dependencies'
   );
+}
+
+const businessChartsDependency = pluginJson.dependencies?.plugins?.some(
+  (plugin) => plugin.id === 'volkovlabs-echarts-panel'
+);
+
+if (!businessChartsDependency) {
+  throw new Error(
+    'volkovlabs-echarts-panel is missing from src/plugin.json dependencies'
+  );
+}
+
+if (packageJson.version !== '1.1.0') {
+  throw new Error(`Unexpected package version: ${packageJson.version}`);
+}
+
+const mapAsset = JSON.parse(
+  fs.readFileSync(
+    'src/pages/Home/detectorMap/detectorMapTemplate.json',
+    'utf8'
+  )
+);
+
+if (mapAsset.pluginId !== 'volkovlabs-echarts-panel') {
+  throw new Error(`Unexpected detector-map plugin: ${mapAsset.pluginId}`);
+}
+
+if (typeof mapAsset.options?.getOption !== 'string') {
+  throw new Error('Detector-map rendering code is missing');
 }
 
 const defaultPages = pluginJson.includes?.filter(

@@ -68,6 +68,7 @@ fi
 
 mkdir -p "${TARGET}"
 cp -a "${ROOT_DIR}/dist/." "${TARGET}/"
+find "${TARGET}" -name '._*' -type f -delete
 
 SOURCE_HASH="$(
   sha256sum "${ROOT_DIR}/dist/module.js" |

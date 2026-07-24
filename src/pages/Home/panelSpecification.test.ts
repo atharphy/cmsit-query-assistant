@@ -4,34 +4,91 @@ import {
 } from './panelSpecification';
 
 describe('parsePanelSpecification', () => {
-  it('parses and trims a valid response', () => {
+  it('keeps old responses compatible as time series', () => {
     expect(
       parsePanelSpecification(
-        '{"title":" VINA ","promql":" cmsit_monitor_value ","unit":" V "}'
+        '{"title":" VINA ","promql":"cmsit_monitor_value{register=\\"VINA\\"}","unit":" V "}'
       )
     ).toEqual({
       title: 'VINA',
-      promql: 'cmsit_monitor_value',
+      visualization: 'timeseries',
+      promql: 'cmsit_monitor_value{register="VINA"}',
       unit: 'V',
+      register: 'VINA',
     });
   });
 
-  it('accepts a JSON response wrapped in a code fence', () => {
+  it('parses a complete detector-map response', () => {
     expect(
       parsePanelSpecification(
-        '```json\n{"title":"Ratio","promql":"a / b","unit":""}\n```'
+        JSON.stringify({
+          title: 'Hot TBPX modules',
+          visualization: 'detector-map',
+          promql:
+            'min_over_time(cmsit_monitor_value{register="INTERNAL_NTC_REL"}[2d]) > 20',
+          unit: 'C',
+          register: 'INTERNAL_NTC_REL',
+          detectorMap: {
+            subdetector: 'TBPX',
+            element: 3,
+            part: 'complete',
+            level: 'module',
+          },
+        })
       )
     ).toEqual({
-      title: 'Ratio',
-      promql: 'a / b',
-      unit: '',
+      title: 'Hot TBPX modules',
+      visualization: 'detector-map',
+      promql:
+        'min_over_time(cmsit_monitor_value{register="INTERNAL_NTC_REL"}[2d]) > 20',
+      unit: 'C',
+      register: 'INTERNAL_NTC_REL',
+      detectorMap: {
+        subdetector: 'TBPX',
+        element: 3,
+        part: 'complete',
+        level: 'module',
+      },
     });
   });
 
-  it('rejects a response without PromQL', () => {
+  it('rejects a barrel quadrant for a ring detector', () => {
     expect(() =>
-      parsePanelSpecification('{"title":"VINA","unit":"V"}')
-    ).toThrow('Assistant response is missing PromQL.');
+      parsePanelSpecification(
+        JSON.stringify({
+          title: 'Invalid map',
+          visualization: 'detector-map',
+          promql: 'cmsit_monitor_value{register="VINA"}',
+          unit: 'V',
+          register: 'VINA',
+          detectorMap: {
+            subdetector: 'TEPX',
+            element: 1,
+            part: 'ladder+z+',
+            level: 'chip',
+          },
+        })
+      )
+    ).toThrow('is not valid for TEPX');
+  });
+
+  it('rejects a detector map without a register', () => {
+    expect(() =>
+      parsePanelSpecification(
+        JSON.stringify({
+          title: 'No register',
+          visualization: 'detector-map',
+          promql: 'vector(1)',
+          unit: '',
+          detectorMap: {
+            subdetector: 'TBPX',
+            element: 1,
+            part: 'complete',
+            level: 'module',
+          },
+        })
+      )
+    ).toThrow('must identify one register');
   });
 });
 

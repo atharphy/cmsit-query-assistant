@@ -1,6 +1,6 @@
 {
   "name": "cmsitqueryassistant",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "scripts": {
     "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
     "dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint --cache .",
     "lint:fix": "npm run lint -- --fix && prettier --write --list-different .",
+    "sync:detector-map": "node scripts/sync-detector-map-assets.mjs",
     "e2e": "playwright test",
     "server": "docker compose up --build",
     "sign": "sign-plugin"
